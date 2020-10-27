@@ -1,0 +1,3 @@
+en:
+  site_settings:
+    discourse_bus_header_enabled: "Enable discourse-bus-header plugin"
