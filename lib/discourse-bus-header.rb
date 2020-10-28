@@ -1,3 +1,12 @@
-require 'fileutils'
-
-FileUtils.mv('/message-bus', '/discourse/config/initializers')
+begin
+    require 'message_bus'
+    puts 'Add message bus header.'
+    MessageBus.extra_response_headers_lookup do |env|
+        [
+            ["Access-Control-Allow-Origin", SiteSetting.discourse_server_environment],
+        ]
+      end
+rescue LoadError
+    puts 'Message Bus is not loaded, plugin Message bus header failed'
+end
+  
