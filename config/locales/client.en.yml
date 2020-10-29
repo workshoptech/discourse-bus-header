@@ -1,6 +1,7 @@
 en:
-  admin:
-    site_settings:
-      categories:
+  js:
+    bus_header:
+      title: "Extra Bus header"
+      site_settings:
         discourse_bus_header: "Check to enable extra bus headers (cors)"
         discourse_server_environment: "Environment server (prod/dev)"
