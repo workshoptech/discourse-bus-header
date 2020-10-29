@@ -8,7 +8,9 @@ enabled_site_setting :discourse_server_environment
 
 PLUGIN_NAME ||= 'DiscourseBusHeader'
 
-
-if SiteSetting.discourse_bus_header_enabled
-    load File.expand_path('lib/discourse-bus-header.rb', __dir__)   
+after_initialize do
+    puts 'Message Bus Plugin'
+    if SiteSetting.discourse_bus_header_enabled
+        load File.expand_path('lib/discourse-bus-header.rb', __dir__)   
+    end
 end
