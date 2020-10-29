@@ -1,5 +1,4 @@
 en:
   js:
     discourse_bus_header: "Check to enable extra bus headers (cors)"
-    discourse_server_environment:
-      server_environment: "Environment server (prod/dev)"
+    discourse_server_environment: "Environment server (prod/dev)"

@@ -1,3 +1,4 @@
 en:
   site_settings:
     discourse_bus_header_enabled: "Enable discourse-bus-header plugin"
+    discourse_server_environment: "Environment server (prod/dev)"
