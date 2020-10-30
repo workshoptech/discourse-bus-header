@@ -3,5 +3,5 @@ plugins:
     default: true
     client: true
   discourse_server_environment:
-    default: 'dev'
+    default: 'https://app-dev.workshop.ws'
     client: true
