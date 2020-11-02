@@ -4,6 +4,8 @@ begin
     MessageBus.extra_response_headers_lookup do |env|
         [
             ["Access-Control-Allow-Origin", SiteSetting.discourse_server_environment],
+            ["Access-Control-Allow-Methods", 'POST'],
+            ["Access-Control-Allow-Headers", '*'],
         ]
     end
 rescue LoadError
