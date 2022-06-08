@@ -27,7 +27,8 @@ begin
             extra_headers = {
                 "Access-Control-Allow-Origin" => SiteSetting.discourse_server_environment,
                 "Access-Control-Allow-Methods" => "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers" => "X-SILENCE-LOGGER, X-Shared-Session-Key, Dont-Chunk, Discourse-Present, Content-Type, Cache-Control, X-Requested-With, X-CSRF-Token, Discourse-Present, User-Api-Key, User-Api-Client-Id, Authorization"
+                "Access-Control-Allow-Headers" => "X-SILENCE-LOGGER, X-Shared-Session-Key, Dont-Chunk, Discourse-Present, Content-Type, Cache-Control, X-Requested-With, X-CSRF-Token, Discourse-Present, User-Api-Key, User-Api-Client-Id, Authorization",
+                "Access-Control-Max-Age" => "7200",
             }
         
             user = nil
@@ -39,8 +40,9 @@ begin
                     extra_headers['Set-Cookie'] = '_t=del; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
                 end
             rescue => e
-                Discourse.warn_exception(e, message: "Unexpected error in Message Bus")
+                Discourse.warn_exception(e, message: "Unexpected error in Message Bus", env: env)
             end
+
             user_id = user && user.id
 
             if user_id == nil && env['HTTP_ORIGIN'] == SiteSetting.discourse_server_environment
@@ -100,7 +102,7 @@ begin
         if Discourse::InvalidAccess === e
         [403, {}, ["Invalid Access"]]
         elsif RateLimiter::LimitExceeded === e
-        [429, { 'Retry-After' => e.available_in }, [e.description]]
+        [429, { 'Retry-After' => e.available_in.to_s }, [e.description]]
         end
     end
     
@@ -117,12 +119,18 @@ begin
     else
         MessageBus.redis_config = GlobalSetting.message_bus_redis_config
     end
-    MessageBus.reliable_pub_sub.max_backlog_size = GlobalSetting.message_bus_max_backlog_size
+    MessageBus.backend_instance.max_backlog_size = GlobalSetting.message_bus_max_backlog_size
+    MessageBus.backend_instance.clear_every = GlobalSetting.message_bus_clear_every
     
-    MessageBus.long_polling_enabled = SiteSetting.enable_long_polling
-    MessageBus.long_polling_interval = SiteSetting.long_polling_interval
-    MessageBus.cache_assets = !Rails.env.development?
-    MessageBus.enable_diagnostics
+    if SiteSetting.table_exists? && SiteSetting.where(name: ['enable_long_polling', 'long_polling_interval']).exists?
+        Discourse.deprecate("enable_long_polling/long_polling_interval have switched from site settings to global settings. Remove the override from the Site Settings UI, and use a config file or environment variables to set the global settings.", drop_from: '2.9.0')
+    
+        MessageBus.long_polling_enabled = SiteSetting.enable_long_polling
+        MessageBus.long_polling_interval = SiteSetting.long_polling_interval
+    else
+        MessageBus.long_polling_enabled = GlobalSetting.enable_long_polling.nil? ? true : GlobalSetting.enable_long_polling
+        MessageBus.long_polling_interval = GlobalSetting.long_polling_interval || 25000
+    end
     
     if Rails.env == "test" || $0 =~ /rake$/
         # disable keepalive in testing
